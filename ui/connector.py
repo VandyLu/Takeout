@@ -21,9 +21,9 @@ import pymysql
 
 class sqlConnector():
 
-	def __init__(self):
+	def __init__(self, user="root", passwd="lfblfblfb"):
 		self.db = pymysql.connect(host="localhost", port=3306,
-								  user="visitor", passwd="123456",
+								  user=user, passwd=passwd,
 								  db="Takeout", charset="utf8")
 		print("login to mysql")
 		self.cursor = self.db.cursor()
@@ -114,8 +114,15 @@ class sqlConnector():
 					"from Rest natural join Course where Rest.RestName='{}';".format(restname))
 		return [r[0] for r in self.cursor.fetchall()]
 
-	def query_course_price(self, restname, ):
-		pass
+	def query_course_info(self, restname, coursename):
+		self.cursor.execute("select RestID from Rest where restName='{}';".format(restname))
+		restID = self.cursor.fetchall()[0][0]
+		cmd = "select Price, Score, Photo from Course "\
+				"where RestID={} and CourseName='{}';".format(restID, coursename)
+		print(cmd)
+		self.cursor.execute(cmd)
+		result = self.cursor.fetchall()[0]
+		return result
 
 	def __del__(self):
 		self.db.close()

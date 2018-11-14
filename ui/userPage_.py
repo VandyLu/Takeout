@@ -20,9 +20,11 @@ class myuserPage(userPage.Ui_MainPage):
 #		self.restNameChosen
 		self.courseName = []
 		self.fillListRest()
+		self.currentRestIndex = -1
 
 		'''---interface---'''
 		self.listWidget_rest.currentRowChanged.connect(self.restClicked)
+		self.listWidget_course.currentRowChanged.connect(self.courseClicked)
 
 	def fillListRest(self):
 		self.listWidget_rest.addItems(self.restName)
@@ -31,10 +33,17 @@ class myuserPage(userPage.Ui_MainPage):
 		self.listWidget_course.addItems(self.courseName)
 
 	def restClicked(self, index):
-		restChosen = self.restName[index]
+		self.currentRestIndex = index
+		self.currentRestName = self.restName[index]
+		restChosen = self.currentRestName
 		if self.courseName:
-			for item in self.courseName:
-				self.listWidget_course.removeItemWidget(item)
+			self.listWidget_course.clear()
+			
 		self.courseName.clear()
 		self.courseName = self.sqlvisitor.query_rest_menu(restChosen)
 		self.fillListCourse()
+
+	def courseClicked(self, index):
+		courseChosen = self.courseName[index]
+		price, score, photo = self.sqlvisitor.query_course_info(self.currentRestName, courseChosen)
+		self.price.setText(str(price))

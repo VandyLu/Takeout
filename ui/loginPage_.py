@@ -15,6 +15,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class myloginPage(loginPage.Ui_LoginPage):
 	def __init__(self, LoginPage):
+
 		self.LoginPage = LoginPage
 		self.setupUi(LoginPage)
 
@@ -22,9 +23,14 @@ class myloginPage(loginPage.Ui_LoginPage):
 		self.lineEdit_passwd.setEchoMode(QtWidgets.QLineEdit.Password)
 		self.lineEdit_passwd_.setEchoMode(QtWidgets.QLineEdit.Password)
 
+		# for debug
+		self.lineEdit_ID.setText('1')
+		self.lineEdit_passwd.setText('123456')
+
 		'''---interface---'''
 		self.Login.clicked.connect(self.login)
 		self.Register.clicked.connect(self.register)
+
 
 
 	def login(self):
