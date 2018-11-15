@@ -76,7 +76,7 @@ class sqlConnector():
 			else:
 				cmd = "INSERT INTO Account (AccountID, AccountPassword, AccountType) \
 					   VALUES({}, '{}', '{}')".format(account, passwd, type)
-				print(cmd)
+				#print(cmd)
 				self.cursor.execute(cmd)
 				self.db.commit() # important
 				gl.set_login_state()

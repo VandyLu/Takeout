@@ -112,7 +112,7 @@ class Ui_MainPage(object):
         self.search_course = QtWidgets.QPushButton(self.horizontalLayoutWidget_4)
         self.search_course.setObjectName("search_course")
         self.horizontalLayout_4.addWidget(self.search_course)
-        self.shoppingCart = QtWidgets.QListView(self.tab_1)
+        self.shoppingCart = QtWidgets.QListWidget(self.tab_1)
         self.shoppingCart.setGeometry(QtCore.QRect(30, 470, 341, 81))
         self.shoppingCart.setObjectName("shoppingCart")
         self.tabWidget.addTab(self.tab_1, "")

@@ -105,3 +105,5 @@ INSERT INTO RestRider
 (RestID,		RiderID)
 SELECT	RestID,	RiderID
 FROM 	Rest,	Rider;
+
+

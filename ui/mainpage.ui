@@ -327,7 +327,7 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QListView" name="shoppingCart">
+    <widget class="QListWidget" name="shoppingCart">
      <property name="geometry">
       <rect>
        <x>30</x>

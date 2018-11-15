@@ -13,6 +13,7 @@ import connector
 import global_ as gl
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class myloginPage(loginPage.Ui_LoginPage):
 	def __init__(self, LoginPage):
 
