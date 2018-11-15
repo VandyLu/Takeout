@@ -31,6 +31,7 @@ class myuserPage(userPage.Ui_MainPage):
 
 	def commitOrder(self):
 		# get userID, restName, orders
+		# not finished
 		self.sqlvisitor()
 
 	def fillListRest(self):
@@ -57,6 +58,8 @@ class myuserPage(userPage.Ui_MainPage):
 			self.orders = new_orders
 
 		self.updateShoppingCart()
+		
+		#print('In "numChanged":', self.orders)
 
 
 
@@ -70,21 +73,23 @@ class myuserPage(userPage.Ui_MainPage):
 			if r[0] == courseName:
 				in_orders = True
 				num = r[1]
+				break
 
+		oldstate = self.spinBox.blockSignals(True)
 		if self.checkBox.isChecked() and not in_orders:
 			self.spinBox.setValue(1) # num is 1
 			self.orders.append((courseName, self.spinBox.value()))
-		elif self.checkBox.isChecked() and in_orders: #when doing 'setCheck' in courseClicked, selectClicked is triggerd.
-			self.spinBox.setValue(num)
-		elif not self.checkBox.isChecked() and not in_orders:
-			self.spinBox.setValue(0)
+			
 		elif not self.checkBox.isChecked() and in_orders:
 			#delete from shoppingcart
 			self.spinBox.setValue(0)
 			self.orders = [r for r in self.orders if r[0] != courseName]
+		self.spinBox.blockSignals(oldstate)
 
 		self.updateShoppingCart()
-		print(self.orders)
+		#print('In "selectClicked":', in_orders)
+		#print('In "selectClicked":', self.orders)
+		
 
 	def restClicked(self, index):	
 		if self.shoppingCart.count() > 0:
@@ -112,16 +117,26 @@ class myuserPage(userPage.Ui_MainPage):
 			self.price.setText(str(price))
 			# check if the course is in the orderings
 
+			self.spinBox.blockSignals(True)
+			self.checkBox.blockSignals(True)
+
 			in_orders = False
 			self.spinBox.setValue(0)
 			for r in self.orders:
 				if r[0] == courseName:
+					print(r)
 					in_orders = True
 					self.spinBox.setValue(r[1])
 					break
-			
+
 			self.checkBox.setChecked(in_orders)
-			print(in_orders)
+
+			self.checkBox.blockSignals(False)
+			self.spinBox.blockSignals(False)
+			
+			
+			#print('In "courseClicked":', in_orders)
+			#print('In "courseClicked":', self.orders)
 
 		else:
 			self.price.setText('')
