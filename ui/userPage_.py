@@ -5,6 +5,7 @@ Created on Sat Nov 10 01:13:59 2018
 @author: Joshua_yxh
 """
 
+import pymysql
 import userPage
 import connector
 import global_ as gl
@@ -16,8 +17,13 @@ class myuserPage(userPage.Ui_MainPage):
 		self.UserPage = MainPage
 		self.setupUi(MainPage)
 
-		self.sqlvisitor = connector.sqlConnector()
-		self.restName = self.sqlvisitor.show_all_rest_names()
+		self.db = pymysql.connect(host="localhost", port=3306,
+								  user='root', passwd='lfblfblfb',
+								  db="Takeout", charset="utf8")
+		self.cursor = self.db.cursor()
+
+		#self.sqlvisitor = connector.sqlConnector()
+		self.restName = self.show_all_rest_names()
 		self.courseName = []
 		self.orders = []
 		self.fillListRest()
@@ -45,6 +51,25 @@ class myuserPage(userPage.Ui_MainPage):
 		self.shoppingCart.clear()
 		self.shoppingCart.addItems(str_items)
 
+	def updateTotal(self):
+		if len(self.orders) == 0:
+			self.total.setText('0')
+		else:
+			courseInOrders = [r[0] for r in self.orders]
+			numInOrders = [r[1] for r in self.orders]
+
+			priceTable = {}
+			restName = self.listWidget_rest.currentItem().text()
+			for courseName in self.courseName:
+				price, score, photo = self.query_course_info(restName, courseName)
+				priceTable[courseName] = float(price)
+
+			totalPrice = 0.0
+			for i, name in enumerate(courseInOrders):
+				totalPrice = totalPrice + priceTable[courseInOrders[i]] * numInOrders[i]
+
+			self.total.setText(str(totalPrice))
+
 
 	def numChanged(self, value):
 		if self.checkBox.isChecked():
@@ -58,9 +83,9 @@ class myuserPage(userPage.Ui_MainPage):
 			self.orders = new_orders
 
 		self.updateShoppingCart()
+		self.updateTotal()
 		
 		#print('In "numChanged":', self.orders)
-
 
 
 	def selectClicked(self, state):
@@ -75,7 +100,7 @@ class myuserPage(userPage.Ui_MainPage):
 				num = r[1]
 				break
 
-		oldstate = self.spinBox.blockSignals(True)
+		self.spinBox.blockSignals(True)
 		if self.checkBox.isChecked() and not in_orders:
 			self.spinBox.setValue(1) # num is 1
 			self.orders.append((courseName, self.spinBox.value()))
@@ -84,9 +109,10 @@ class myuserPage(userPage.Ui_MainPage):
 			#delete from shoppingcart
 			self.spinBox.setValue(0)
 			self.orders = [r for r in self.orders if r[0] != courseName]
-		self.spinBox.blockSignals(oldstate)
+		self.spinBox.blockSignals(False)
 
 		self.updateShoppingCart()
+		self.updateTotal()
 		#print('In "selectClicked":', in_orders)
 		#print('In "selectClicked":', self.orders)
 		
@@ -105,16 +131,19 @@ class myuserPage(userPage.Ui_MainPage):
 			self.listWidget_course.clear()
 			
 			self.courseName.clear()
-			self.courseName = self.sqlvisitor.query_rest_menu(self.restName[index])
+			self.courseName = self.query_rest_menu(self.restName[index])
 			self.fillListCourse()
+
+		self.updateTotal()
 
 
 	def courseClicked(self, index):
 		courseName = self.listWidget_course.currentItem().text()
 		if index >= 0:
 			courseChosen = self.courseName[index]
-			price, score, photo = self.sqlvisitor.query_course_info(self.restName[self.listWidget_rest.currentRow()], courseChosen)
+			price, score, photo = self.query_course_info(self.restName[self.listWidget_rest.currentRow()], courseChosen)
 			self.price.setText(str(price))
+			self.score.setText(str(score))
 			# check if the course is in the orderings
 
 			self.spinBox.blockSignals(True)
@@ -140,3 +169,42 @@ class myuserPage(userPage.Ui_MainPage):
 
 		else:
 			self.price.setText('')
+			self.score.setText('')
+
+		self.updateTotal()
+
+
+####################################################################################################
+# MYSQL
+	def show_all_rest_names(self):
+		''' return a list of rest names
+		'''
+		try:
+			cmd = "SELECT RestName from Rest"
+			count = self.cursor.execute(cmd)
+			result =  self.cursor.fetchall()
+			return [record[0] for record in result]
+		except:
+			self.db.rollback()
+			return []
+
+	def query_rest_menu(self, restname):
+		self.cursor.execute("select CourseName "
+					"from Rest natural join Course where Rest.RestName='{}';".format(restname))
+		return [r[0] for r in self.cursor.fetchall()]
+
+	def query_course_info(self, restname, coursename):
+		self.cursor.execute("select RestID from Rest where restName='{}';".format(restname))
+		restID = self.cursor.fetchall()[0][0]
+		cmd = "select Price, Score, Photo from Course "\
+				"where RestID={} and CourseName='{}';".format(restID, coursename)
+		print(cmd)
+		self.cursor.execute(cmd)
+		result = self.cursor.fetchall()[0]
+		return result
+
+	def query_rest_all_prices(self, restname):
+		self.cursor.execute("")
+#######################################################################################################
+	def __del__(self):
+		self.db.close()
