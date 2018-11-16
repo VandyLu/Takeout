@@ -21,7 +21,7 @@ import pymysql
 
 class sqlConnector():
 
-	def __init__(self, user="root", passwd="lfblfblfb"):
+	def __init__(self, user="visitor", passwd="123456"):
 		self.db = pymysql.connect(host="localhost", port=3306,
 								  user=user, passwd=passwd,
 								  db="Takeout", charset="utf8")

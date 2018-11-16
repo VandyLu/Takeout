@@ -5,12 +5,14 @@ Created on Sat Nov 10 01:13:59 2018
 @author: Joshua_yxh
 """
 
+import cv2
 import pymysql
 import userPage
 import connector
 import global_ as gl
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtGui import QImage, QPixmap
 
 class myuserPage(userPage.Ui_MainPage):
 	def __init__(self, MainPage):
@@ -18,7 +20,7 @@ class myuserPage(userPage.Ui_MainPage):
 		self.setupUi(MainPage)
 
 		self.db = pymysql.connect(host="localhost", port=3306,
-								  user='root', passwd='lfblfblfb',
+								  user="visitor", passwd="123456",
 								  db="Takeout", charset="utf8")
 		self.cursor = self.db.cursor()
 
@@ -27,6 +29,15 @@ class myuserPage(userPage.Ui_MainPage):
 		self.courseName = []
 		self.orders = []
 		self.fillListRest()
+
+		'''---user info---'''
+		self.accountID = gl.get_value('account')
+		self.addLoginTime()
+		self.userID_, self.userName_, self.userTel_ = self.query_user_info()
+		print("{}: {}, {}".format(self.userID_, self.userName_, self.userTel_))
+		self.userID.setText(str(self.userID_))
+		self.lineEdit_userName.setText(self.userName_)
+		self.lineEdit_userTel.setText(self.userTel_)
 
 		'''---interface---'''
 		self.listWidget_rest.currentRowChanged.connect(self.restClicked)
@@ -38,7 +49,8 @@ class myuserPage(userPage.Ui_MainPage):
 	def commitOrder(self):
 		# get userID, restName, orders
 		# not finished
-		self.sqlvisitor()
+		print('into')
+#		self.sqlvisitor()
 
 	def fillListRest(self):
 		self.listWidget_rest.addItems(self.restName)
@@ -84,7 +96,7 @@ class myuserPage(userPage.Ui_MainPage):
 
 		self.updateShoppingCart()
 		self.updateTotal()
-		
+
 		#print('In "numChanged":', self.orders)
 
 
@@ -104,7 +116,7 @@ class myuserPage(userPage.Ui_MainPage):
 		if self.checkBox.isChecked() and not in_orders:
 			self.spinBox.setValue(1) # num is 1
 			self.orders.append((courseName, self.spinBox.value()))
-			
+
 		elif not self.checkBox.isChecked() and in_orders:
 			#delete from shoppingcart
 			self.spinBox.setValue(0)
@@ -115,21 +127,21 @@ class myuserPage(userPage.Ui_MainPage):
 		self.updateTotal()
 		#print('In "selectClicked":', in_orders)
 		#print('In "selectClicked":', self.orders)
-		
 
-	def restClicked(self, index):	
+
+	def restClicked(self, index):
 		if self.shoppingCart.count() > 0:
 			# change to a new rest
-			reply = QMessageBox.question(self, 'Warning', 'Give up current ordering?', 
+			reply = QMessageBox.question(self, 'Warning', 'Give up current ordering?',
 				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 			if replay == QMessageBox.Yes:
 				self.shoppingCart.clear()
 				self.listWidget_course.setCurrentRow(-1)
-				
+
 
 		if index >= 0:
 			self.listWidget_course.clear()
-			
+
 			self.courseName.clear()
 			self.courseName = self.query_rest_menu(self.restName[index])
 			self.fillListCourse()
@@ -141,9 +153,11 @@ class myuserPage(userPage.Ui_MainPage):
 		courseName = self.listWidget_course.currentItem().text()
 		if index >= 0:
 			courseChosen = self.courseName[index]
-			price, score, photo = self.query_course_info(self.restName[self.listWidget_rest.currentRow()], courseChosen)
+			price, score, imagePath = self.query_course_info(self.restName[self.listWidget_rest.currentRow()], courseChosen)
 			self.price.setText(str(price))
-			self.score.setText(str(score))
+			scoreStr = "{}/5".format(score)
+			print(scoreStr)
+			self.score.setText(scoreStr)
 			# check if the course is in the orderings
 
 			self.spinBox.blockSignals(True)
@@ -162,10 +176,27 @@ class myuserPage(userPage.Ui_MainPage):
 
 			self.checkBox.blockSignals(False)
 			self.spinBox.blockSignals(False)
-			
-			
+
+
 			#print('In "courseClicked":', in_orders)
 			#print('In "courseClicked":', self.orders)
+
+			'''---read image---'''
+			if imagePath != '':
+				print(imagePath)
+				img = cv2.imread(imagePath)
+				height, width, bytesPerComponent = img.shape
+				bytesPerLine = 3 * width
+				cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
+				Qimg = QImage(img.data, width, height, bytesPerLine,QImage.Format_RGB888)
+				self.zoomscale=350/max(height, width)
+				pix = QPixmap.fromImage(Qimg)
+				self.item=QGraphicsPixmapItem(pix)
+				self.item.setScale(self.zoomscale)
+				self.scene=QGraphicsScene()
+				self.scene.addItem(self.item)
+				self.graphicsView.setScene(self.scene)
+
 
 		else:
 			self.price.setText('')
@@ -205,6 +236,24 @@ class myuserPage(userPage.Ui_MainPage):
 
 	def query_rest_all_prices(self, restname):
 		self.cursor.execute("")
+
+	def query_user_info(self):
+		self.cursor.execute("select userID,userName,userTel \
+							 from users where AccountID={};".format(self.accountID))
+		result = self.cursor.fetchall()[0]
+		return result[0], result[1], result[2]
+
+	def addLoginTime(self):
+		self.cursor.execute("select UserLoginTime from users;")
+		time = int(self.cursor.fetchone()[0]) + 1
+		print("logintimes: {}".format(int(time)))
+#		try:
+#			cmd = "UPDATE users SET UserLoginTime={} WHERE UserID={};".format(time, self.accountID)
+#			print(cmd)
+#			self.cursor.execute(cmd)
+#			self.db.commit()
+#		except:
+#			self.db.rollback()
 #######################################################################################################
 	def __del__(self):
 		self.db.close()
