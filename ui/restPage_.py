@@ -37,6 +37,9 @@ class myrestPage(restPage.Ui_RestPage):
 		self.acceptOrder.clicked.connect(self.accept_clicked)
 		self.rejectOrder.clicked.connect(self.reject_clicked)
 
+		self.tableWidget_history.currentCellChanged.connect(self.update)
+		self.saveChange.clicked.connect(self.saveChange_clicked)
+		self.abandonChange.clicked.connect(self.abandonChange_clicked)
 
 	def get_rest_info(self):
 		self.restAccount = gl.get_value('account')
@@ -60,6 +63,7 @@ class myrestPage(restPage.Ui_RestPage):
 		self.tableWidget_order.blockSignals(TF)
 		self.acceptOrder.blockSignals(TF)
 		self.rejectOrder.blockSignals(TF)
+		self.tableWidget_history.blockSignals(TF)
 
 	def update(self):
 		# page 1
@@ -99,7 +103,40 @@ class myrestPage(restPage.Ui_RestPage):
 			course_num = self.cursor.fetchall()
 			self.updateOrderCourseList(course_num)
 
+		# page 3
+		cmd = 'select UserName, RiderName, OrderTime, ScoreRest, CommentTxt from orders join users on orders.UserID=users.UserID join Rider on Rider.RiderID=Orders.RiderID where restid={} and State=3;'.format(self.restID)
+		count = self.cursor.execute(cmd)
+		results = self.cursor.fetchall()
+		self.historyTable = results
+		self.updateHistoryTable(results)
+
+		currentHistoyRow = self.tableWidget_history.currentRow()
+		if currentHistoyRow >= 0:
+			self.comment.setText(self.historyTable[currentHistoyRow][-1])
+
+		# page 4
+		cmd = 'select RestName, RestTel, RestAddress, LocX, LocY from Rest where RestID={}'.format(self.restID)
+		count = self.cursor.execute(cmd)
+		result = self.cursor.fetchone()
+
+		self.label_restID.setText(str(self.restID))
+		self.lineEdit_restName.setText(result[0])
+		self.lineEdit_restTel.setText(result[1])
+		self.Address.setText(result[2])
+		self.lineEdit_restLongitude.setText(str(result[3]))
+		self.lineEdit_restLatitude.setText(str(result[4]))
+
 		self.blockSignals(False)
+
+	def updateHistoryTable(self, results):
+		count = len(results)
+		self.tableWidget_history.setRowCount(count)
+		for i in range(count):
+			self.tableWidget_history.setItem(i, 0, QtWidgets.QTableWidgetItem(results[i][0]))
+			self.tableWidget_history.setItem(i, 1, QtWidgets.QTableWidgetItem(results[i][1]))
+			self.tableWidget_history.setItem(i, 2, QtWidgets.QTableWidgetItem(str(results[i][2])))
+			self.tableWidget_history.setItem(i, 3, QtWidgets.QTableWidgetItem(str(results[i][3])))
+
 
 	def updateOrderTable(self, results):
 		count = len(results)
@@ -208,4 +245,23 @@ class myrestPage(restPage.Ui_RestPage):
 			self.listWidget_orderCourse.clear()
 			self.tableWidget_order.setCurrentCell(0, 0)
 
+		self.update()
+
+	def saveChange_clicked(self):
+		newRestName = self.lineEdit_restName.text()
+		newRestTel = self.lineEdit_restTel.text()
+		newRestAddress = self.Address.toPlainText()
+		newRestLocX = self.lineEdit_restLongitude.text()
+		newRestLocY = self.lineEdit_restLatitude.text()
+
+		cmd = 'update rest set RestName="{}", RestTel="{}", RestAddress="{}", LocX={}, LocY={} where restid={}'.format(newRestName,
+		 newRestTel,
+		 newRestAddress,
+		 newRestLocX,
+		 newRestLocY, 
+		 self.restID)
+		self.cursor.execute(cmd)
+		self.db.commit()
+
+	def abandonChange_clicked(self):
 		self.update()

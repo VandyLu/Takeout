@@ -46,17 +46,17 @@ VALUES
 
 # populate the Rest table
 INSERT INTO Rest
-(RestName,		RestTel,		LocX,		LocY,		AccountID)
+(RestName,		RestTel,		RestAddress, LocX,		LocY,		AccountID)
 VALUES
-('KFC',			'4008823823',	121.00,		31.00,		5),
-('McDonald',	'4008517517',	121.50,		31.10,		6),
-('StarBucks',	'4008077895',	121.60,		31.15,		7),
-('Costa Coffee','4008130999',	121.15,		31.13,		8),
-('PizzaHut',	'4008123123',	120.88,		31.45,		9),
-('BurgerKing',	'4008988788',	121.05,		30.98,		10),
-('Dicos',		'4006639797',	120.95,		31.60,		11),
-('YOSHINOYA',	'4008197197',	121.44,		30.80,		12),
-('Christine',	'4008205000',	121.30,		31.00,		13);
+('KFC',			'4008823823',	'Dongchuan Road 800', 121.00,		31.00,		5),
+('McDonald',	'4008517517',	'Dongchuan Road 801', 121.50,		31.10,		6),
+('StarBucks',	'4008077895',	'Dongchuan Road 802', 121.60,		31.15,		7),
+('Costa Coffee','4008130999',	'Dongchuan Road 803', 121.15,		31.13,		8),
+('PizzaHut',	'4008123123',	'Dongchuan Road 804', 120.88,		31.45,		9),
+('BurgerKing',	'4008988788',	'Dongchuan Road 805', 121.05,		30.98,		10),
+('Dicos',		'4006639797',	'Dongchuan Road 806', 120.95,		31.60,		11),
+('YOSHINOYA',	'4008197197',	'Dongchuan Road 807', 121.44,		30.80,		12),
+('Christine',	'4008205000',	'Dongchuan Road 808', 121.30,		31.00,		13);
 
 # populate the Course table
 INSERT INTO Course

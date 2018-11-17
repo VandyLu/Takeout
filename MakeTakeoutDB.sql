@@ -43,6 +43,7 @@ CREATE TABLE Rest
     RestName	VARCHAR(20)		NOT NULL,
     RestTel		VARCHAR(15)		NOT NULL,
     RestScore	DECIMAL(2,1)	NULL,		# check
+    RestAddress VARCHAR(50)     NULL,
     LocX		DECIMAL(5,2)	NOT NULL,	# longitude
     LocY		DECIMAL(4,2)	NOT NULL,	# altitude	# may calculate the freights
     AccountID   SMALLINT  		UNSIGNED 	NOT NULL,
