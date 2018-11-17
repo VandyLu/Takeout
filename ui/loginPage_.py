@@ -25,8 +25,8 @@ class myloginPage(loginPage.Ui_LoginPage):
 		self.lineEdit_passwd_.setEchoMode(QtWidgets.QLineEdit.Password)
 
 		# for debug
-		self.lineEdit_ID.setText('1')
-		self.lineEdit_passwd.setText('123456')
+		self.lineEdit_ID.setText('5')
+		self.lineEdit_passwd.setText('abcabc')
 
 		'''---interface---'''
 		self.Login.clicked.connect(self.login)

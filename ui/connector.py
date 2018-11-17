@@ -124,8 +124,8 @@ class sqlConnector():
 		result = self.cursor.fetchall()[0]
 		return result
 
-	def __del__(self):
-		self.db.close()
+	#def __del__(self):
+	#	self.db.close()
 
 if __name__ == '__main__':
 
