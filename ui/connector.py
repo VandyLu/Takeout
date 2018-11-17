@@ -46,11 +46,11 @@ class sqlConnector():
 		'''
 			Return: AcountCheck, PasswordCheck
  		'''
+
 		try:
 			queryStr = "SELECT AccountPassword, AccountType FROM Account WHERE AccountID = {0};".format(account)
 			count = self.cursor.execute(queryStr)
 			result = self.cursor.fetchone()
-
 			if count > 0:
 				# Check Password
 				if not result[1] == type:

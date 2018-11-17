@@ -10,6 +10,9 @@ def _init():
 	global _global_account
 	_global_account = {}
 	set_value('login_state', False)
+	set_value('sql_account', 'visitor')
+	set_value('sql_passwd', '123456')
+	
 
 def get_login_state():
 	return _global_account['login_state']
