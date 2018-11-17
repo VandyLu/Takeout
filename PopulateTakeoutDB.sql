@@ -106,4 +106,21 @@ INSERT INTO RestRider
 SELECT	RestID,	RiderID
 FROM 	Rest,	Rider;
 
+# populate the orders table
+INSERT INTO Orders
+(UserID,	RestID,		state,		RiderID,	ScoreRest,	ScoreRider,	CommentTxt)
+VALUES
+(1,			1,			3,			1,			4.5,		4.5,		"Not Bad!"),
+(1,			2,			3,			3,			4.5,		4.5,		"The delivery could be faster!"),
+(1,			3,			3,			5,			4.5,		4.5,		"Delicious!!!");
+
+# populate the OrderCourse table
+INSERT INTO OrderCourse
+(OrderID,	CourseID,	Num)
+VALUES
+(1,			1,			1),
+(1,			2,			1),
+(2,			3,			1),
+(3,			5,			2),
+(3,			6,			1);
 

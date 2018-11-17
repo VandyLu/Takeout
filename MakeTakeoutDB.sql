@@ -57,7 +57,7 @@ CREATE TABLE Course
     CourseName	VARCHAR(20)		NOT NULL,
     RestID		SMALLINT 		UNSIGNED	NOT NULL,
     Price		DECIMAL(5,2)	NOT NULL,
-    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 0,
+    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.5,
     Photo		VARCHAR(50)		NULL, 		# record the path of the photos, if not uploaded, a fixed pic could be used
 #	Dicount		DECIMAL(2,2)	NOT NULL	DEFAULT 0,	# actual price = Price * (1-Discount)
     PRIMARY KEY	(CourseID),
@@ -70,6 +70,7 @@ CREATE TABLE Rider
 	RiderID		SMALLINT		UNSIGNED	NOT NULL	AUTO_INCREMENT,
     RiderName	VARCHAR(10)		NOT NULL,
     RiderTel	VARCHAR(15)		NOT NULL,
+    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.5,
     AccountID   SMALLINT		UNSIGNED    NOT NULL,
     FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
     PRIMARY KEY	(RiderID)
@@ -82,9 +83,13 @@ CREATE TABLE Orders
     UserID		SMALLINT		UNSIGNED	NOT NULL,
     RestID		SMALLINT		UNSIGNED	NOT NULL,
     State		INT				UNSIGNED	DEFAULT 0,	# if the order is completed
+    # state:	0:order placed	1:rest confirm	2:rider delivering	3:user received
     RiderID		SMALLINT		UNSIGNED	NULL,
     #RiderState	BOOL			NOT NULL	DEFAULT FALSE,	# if a rider is assigned to this order
     OrderTime	TIMESTAMP 		NOT NULL 	DEFAULT 	CURRENT_TIMESTAMP 	ON UPDATE CURRENT_TIMESTAMP,	# not sure
+    ScoreRest	DECIMAL(2,1)	UNSIGNED	NULL,
+    ScoreRider	DECIMAL(2,1)	UNSIGNED	NULL,
+    CommentTxt	TEXT			NULL,
     PRIMARY KEY	(OrderID),
     FOREIGN KEY (UserID)	REFERENCES UserS(UserID) 	ON DELETE CASCADE	ON UPDATE CASCADE,
     FOREIGN KEY (RestID)	REFERENCES Rest(RestID) 	ON DELETE CASCADE	ON UPDATE CASCADE,
@@ -96,7 +101,7 @@ CREATE TABLE OrderCourse
 (
 	OrderID		INT 			UNSIGNED	NOT NULL,
     CourseID	SMALLINT		UNSIGNED	NOT NULL,
-    Num			INT 			UNSIGNED NOT NULL,
+    Num			INT 			UNSIGNED 	NOT NULL,
     PRIMARY KEY (OrderID,CourseID),
 	FOREIGN KEY (OrderID)	REFERENCES Orders(OrderID) 	ON DELETE CASCADE	ON UPDATE CASCADE,
     FOREIGN KEY (CourseID)	REFERENCES Course(CourseID)	ON DELETE CASCADE	ON UPDATE CASCADE

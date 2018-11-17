@@ -372,7 +372,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTableWidget" name="tableWidget_orders">
      <property name="geometry">
       <rect>
        <x>30</x>
@@ -381,26 +381,6 @@
        <height>271</height>
       </rect>
      </property>
-     <row>
-      <property name="text">
-       <string>pay</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>comment</string>
-      </property>
-     </row>
-     <column>
-      <property name="text">
-       <string>order01</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>order02</string>
-      </property>
-     </column>
     </widget>
     <widget class="QPushButton" name="commit_comment">
      <property name="geometry">
@@ -604,6 +584,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="label_deliverState">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_16">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -715,7 +702,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QTableWidget" name="tableWidget_2">
+    <widget class="QTableWidget" name="tableWidget_Loc">
      <property name="geometry">
       <rect>
        <x>50</x>
@@ -724,31 +711,6 @@
        <height>191</height>
       </rect>
      </property>
-     <row>
-      <property name="text">
-       <string>address01</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>address02</string>
-      </property>
-     </row>
-     <column>
-      <property name="text">
-       <string>address</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>longitude</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>latitude</string>
-      </property>
-     </column>
     </widget>
     <widget class="QWidget" name="horizontalLayoutWidget_5">
      <property name="geometry">
