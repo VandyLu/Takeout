@@ -47,7 +47,7 @@
     </size>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -265,7 +265,7 @@
       <rect>
        <x>50</x>
        <y>50</y>
-       <width>681</width>
+       <width>451</width>
        <height>261</height>
       </rect>
      </property>
@@ -284,11 +284,6 @@
      <column>
       <property name="text">
        <string>user</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>price</string>
       </property>
      </column>
      <column>
@@ -385,10 +380,21 @@
       <string>waiting orders:</string>
      </property>
     </widget>
+    <widget class="QListWidget" name="listWidget_orderCourse">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>50</y>
+       <width>256</width>
+       <height>261</height>
+      </rect>
+     </property>
+    </widget>
     <zorder>tableWidget_order</zorder>
     <zorder>horizontalLayoutWidget_2</zorder>
     <zorder>label_13</zorder>
     <zorder>horizontalSpacer_6</zorder>
+    <zorder>listWidget_orderCourse</zorder>
    </widget>
    <widget class="QWidget" name="tab_3">
     <attribute name="title">

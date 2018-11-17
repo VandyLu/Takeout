@@ -25,17 +25,18 @@ class myrestPage(restPage.Ui_RestPage):
 								  db="Takeout", charset="utf8")
 		self.cursor = self.db.cursor()
 
-		# page1
 		self.get_rest_info()
 		self.update()
 
-		self.tableWidget_course.currentCellChanged.connect(self.courseTableCell_changed)
+		self.tableWidget_course.currentCellChanged.connect(self.update)
 		self.addCourse.clicked.connect(self.add_clicked)
 		self.saveCourse.clicked.connect(self.save_clicked)
 		self.deleteCourse.clicked.connect(self.delete_clicked)
 
-		# page2
-		
+		self.tableWidget_order.currentCellChanged.connect(self.update)
+		self.acceptOrder.clicked.connect(self.accept_clicked)
+		self.rejectOrder.clicked.connect(self.reject_clicked)
+
 
 	def get_rest_info(self):
 		self.restAccount = gl.get_value('account')
@@ -51,7 +52,18 @@ class myrestPage(restPage.Ui_RestPage):
 			self.locX = result[4]
 			self.locY = result[5]
 
+	def blockSignals(self, TF):
+		self.tableWidget_course.blockSignals(TF)
+		self.addCourse.blockSignals(TF)
+		self.saveCourse.blockSignals(TF)
+		self.deleteCourse.blockSignals(TF)
+		self.tableWidget_order.blockSignals(TF)
+		self.acceptOrder.blockSignals(TF)
+		self.rejectOrder.blockSignals(TF)
+
 	def update(self):
+		# page 1
+		self.blockSignals(True)
 		cmd = 'select CourseName, Price, Photo, CourseID from course where RestID = {}'.format(self.restID)
 		count = self.cursor.execute(cmd)
 		results = self.cursor.fetchall()
@@ -70,6 +82,40 @@ class myrestPage(restPage.Ui_RestPage):
 		self.courseNameEdit.setText(results[currentRow][0])
 		self.coursePriceEdit.setText(str(results[currentRow][1]))
 		self.coursePhotoEdit.setText(results[currentRow][2])
+
+		# page 2
+		cmd = 'select UserName, OrderTime, State, OrderID from (orders join users on orders.UserID=users.UserID) where RestID={} and State=0;'.format(self.restID)
+		count = self.cursor.execute(cmd)
+		results = self.cursor.fetchall()
+		
+		self.orderTable = results
+		self.updateOrderTable(results)
+
+		currentOrderRow = self.tableWidget_order.currentRow()
+		if currentOrderRow >= 0:
+			currentOrderID = results[currentOrderRow][-1]
+			cmd = 'select CourseName, Num from (OrderCourse join Course on OrderCourse.CourseID=Course.CourseID) where OrderID={};'.format(currentOrderID)
+			count = self.cursor.execute(cmd)
+			course_num = self.cursor.fetchall()
+			self.updateOrderCourseList(course_num)
+
+		self.blockSignals(False)
+
+	def updateOrderTable(self, results):
+		count = len(results)
+		self.tableWidget_order.setRowCount(count)
+		for i in range(count):
+			self.tableWidget_order.setItem(i, 0, QtWidgets.QTableWidgetItem(results[i][0]))
+			self.tableWidget_order.setItem(i, 1, QtWidgets.QTableWidgetItem(str(results[i][1])))
+			self.tableWidget_order.setItem(i, 2, QtWidgets.QTableWidgetItem(str(results[i][2])))
+			self.tableWidget_order.setItem(i, 3, QtWidgets.QTableWidgetItem('NULL'))
+
+	def updateOrderCourseList(self, course_num):
+		self.listWidget_orderCourse.clear()
+		print('course_num: ', course_num)
+		for name, num in course_num:
+			show_str = '{} * {}'.format(name, num)
+			self.listWidget_orderCourse.addItem(show_str)
 
 	def updateCourseTable(self, results):
 		count = len(results)
@@ -92,8 +138,8 @@ class myrestPage(restPage.Ui_RestPage):
 		scene.addItem(item)
 		self.graphicsView.setScene(scene)
 
-	def courseTableCell_changed(self, cur_r, cur_c, pre_r, pre_c):
-		self.update()
+	#def courseTableCell_changed(self, cur_r, cur_c, pre_r, pre_c):
+	#	self.update()
 
 
 	def add_clicked(self):
@@ -138,3 +184,28 @@ class myrestPage(restPage.Ui_RestPage):
 			
 
 
+	def accept_clicked(self):
+		currentRow = self.tableWidget_order.currentRow()
+		if currentRow >= 0:
+			cmd = 'update Orders set state=1 where OrderID={}'.format(self.orderTable[currentRow][-1])
+			self.cursor.execute(cmd)
+			self.db.commit()
+
+			self.listWidget_orderCourse.clear()
+			self.tableWidget_order.setCurrentCell(0, 0)
+
+		self.update()
+
+	def reject_clicked(self):
+		currentRow = self.tableWidget_order.currentRow()
+		if currentRow >= 0:
+			cmd = 'delete from orders where orderID={};'.format(self.orderTable[currentRow][-1])
+			self.cursor.execute(cmd)
+			cmd = 'delete from ordercourse where orderID={};'.format(self.orderTable[currentRow][-1])
+			self.cursor.execute(cmd)
+			self.db.commit()
+
+			self.listWidget_orderCourse.clear()
+			self.tableWidget_order.setCurrentCell(0, 0)
+
+		self.update()
