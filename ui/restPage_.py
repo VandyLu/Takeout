@@ -26,13 +26,15 @@ class myrestPage(restPage.Ui_RestPage):
 		self.cursor = self.db.cursor()
 
 		self.get_rest_info()
+		RestPage.setWindowTitle('Rest--{}'.format(self.restName))
 		self.update()
+		self.updateInfoPage()
 
 		self.timer = QTimer()
 		self.timer.timeout.connect(self.update) 
 		self.timer.start(1000) # flush 1hz
 
-		self.tableWidget_course.currentCellChanged.connect(self.update)
+		self.tableWidget_course.currentCellChanged.connect(self.courseChanged)
 		self.addCourse.clicked.connect(self.add_clicked)
 		self.saveCourse.clicked.connect(self.save_clicked)
 		self.deleteCourse.clicked.connect(self.delete_clicked)
@@ -87,9 +89,9 @@ class myrestPage(restPage.Ui_RestPage):
 		self.updateCourseTable(results)
 		self.updateImage(results[currentRow][2])
 
-		self.courseNameEdit.setText(results[currentRow][0])
-		self.coursePriceEdit.setText(str(results[currentRow][1]))
-		self.coursePhotoEdit.setText(results[currentRow][2])
+		#self.courseNameEdit.setText(results[currentRow][0])
+		#self.coursePriceEdit.setText(str(results[currentRow][1]))
+		#self.coursePhotoEdit.setText(results[currentRow][2])
 
 		# page 2
 		cmd = 'select UserName, OrderTime, State, OrderID from (orders join users on orders.UserID=users.UserID) where RestID={} and State=0;'.format(self.restID)
@@ -119,6 +121,25 @@ class myrestPage(restPage.Ui_RestPage):
 			self.comment.setText(self.historyTable[currentHistoyRow][-1])
 
 		# page 4
+		
+
+		self.db.commit()
+		self.blockSignals(False)
+
+	def courseChanged(self):
+
+		cmd = 'select CourseName, Price, Photo, CourseID from course where RestID = {}'.format(self.restID)
+		count = self.cursor.execute(cmd)
+		results = self.cursor.fetchall()
+		self.courseTable = results
+
+		currentRow = self.tableWidget_course.currentRow()
+		if currentRow >= 0:
+			self.courseNameEdit.setText(results[currentRow][0])
+			self.coursePriceEdit.setText(str(results[currentRow][1]))
+			self.coursePhotoEdit.setText(results[currentRow][2])
+
+	def updateInfoPage(self):
 		cmd = 'select RestName, RestTel, RestAddress, LocX, LocY from Rest where RestID={}'.format(self.restID)
 		count = self.cursor.execute(cmd)
 		result = self.cursor.fetchone()
@@ -129,8 +150,6 @@ class myrestPage(restPage.Ui_RestPage):
 		self.Address.setText(result[2])
 		self.lineEdit_restLongitude.setText(str(result[3]))
 		self.lineEdit_restLatitude.setText(str(result[4]))
-
-		self.blockSignals(False)
 
 	def updateHistoryTable(self, results):
 		count = len(results)

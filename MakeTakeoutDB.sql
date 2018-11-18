@@ -42,8 +42,11 @@ CREATE TABLE Rest
 	RestID		SMALLINT		UNSIGNED	NOT NULL	AUTO_INCREMENT,
     RestName	VARCHAR(20)		NOT NULL,
     RestTel		VARCHAR(15)		NOT NULL,
+
     RestScore	DECIMAL(2,1)	NULL,		# check
     RestAddress VARCHAR(50)     NULL,
+
+#    Score		DECIMAL(2,1)	NULL		DEFAULT 4.0,		# check
     LocX		DECIMAL(5,2)	NOT NULL,	# longitude
     LocY		DECIMAL(4,2)	NOT NULL,	# altitude	# may calculate the freights
     AccountID   SMALLINT  		UNSIGNED 	NOT NULL,
@@ -58,7 +61,7 @@ CREATE TABLE Course
     CourseName	VARCHAR(20)		NOT NULL,
     RestID		SMALLINT 		UNSIGNED	NOT NULL,
     Price		DECIMAL(5,2)	NOT NULL,
-    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.5,
+    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.0,
     Photo		VARCHAR(50)		NULL, 		# record the path of the photos, if not uploaded, a fixed pic could be used
 #	Dicount		DECIMAL(2,2)	NOT NULL	DEFAULT 0,	# actual price = Price * (1-Discount)
     PRIMARY KEY	(CourseID),
@@ -71,7 +74,7 @@ CREATE TABLE Rider
 	RiderID		SMALLINT		UNSIGNED	NOT NULL	AUTO_INCREMENT,
     RiderName	VARCHAR(10)		NOT NULL,
     RiderTel	VARCHAR(15)		NOT NULL,
-    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.5,
+    Score		DECIMAL(2,1)	NOT NULL	DEFAULT 4.0,
     AccountID   SMALLINT		UNSIGNED    NOT NULL,
     FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
     PRIMARY KEY	(RiderID)

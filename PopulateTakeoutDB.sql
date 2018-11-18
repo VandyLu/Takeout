@@ -45,6 +45,7 @@ VALUES
 (3,		1,		'D8-502',			121.38,		31.12),
 (4,		1,		'SEIEE-2-202',		121.38,		31.12);	# 1 longitude = 111 km
 
+
 # populate the Rest table
 INSERT INTO Rest
 (RestName,		RestTel,		RestAddress, LocX,		LocY,		AccountID)

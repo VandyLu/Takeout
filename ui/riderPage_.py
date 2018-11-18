@@ -30,6 +30,8 @@ class myriderPage(riderPage.Ui_RiderPage):
 		self.update() # flush
 		self.updateRiderInfo() # not flush
 
+		RiderPage.setWindowTitle('Rider--{}'.format(self.riderName))
+
 		self.acceptOrder.clicked.connect(self.accpet_clicked)
 		self.rejectOrder.clicked.connect(self.reject_clicked)
 
@@ -38,7 +40,7 @@ class myriderPage(riderPage.Ui_RiderPage):
 
 		self.timer = QTimer()
 		self.timer.timeout.connect(self.update) 
-		self.timer.start(100000)
+		self.timer.start(1000)
 
 		
 
@@ -79,11 +81,12 @@ class myriderPage(riderPage.Ui_RiderPage):
 		results = self.cursor.fetchall()
 		self.deliveringOrder = results
 		self.updateDeliverTable(results)
-
+		
 		# page 2
 		self.updateMap()
 		# page 3
 		self.updateRiderInfo()
+		self.db.commit()
 
 		self.blockSignals(False)
 
@@ -109,12 +112,14 @@ class myriderPage(riderPage.Ui_RiderPage):
 
 
 	def accpet_clicked(self):
+		print('in accept')
 		currentRow = self.tableWidget_order.currentRow()
 		if currentRow >= 0:
 			orderID = self.waitingOrder[currentRow][-1]
 
-			cmd = 'update orders set RiderID={} where OrderID={}'.format(self.riderID, orderID)
+			cmd = 'update orders set RiderID={}, State=2 where OrderID={}'.format(self.riderID, orderID)
 			self.cursor.execute(cmd)
+			self.db.commit()
 
 		self.update()
 
@@ -155,46 +160,47 @@ class myriderPage(riderPage.Ui_RiderPage):
 		img = np.ones((height, width, 3), dtype=np.uint8) * 255
 		# prepare data
 		count = len(self.deliveringOrder)
-		records = np.zeros((count, 4), dtype=np.float32) #(userX, userY, restX, restY)
-		for i in range(count):
-			orderID = self.deliveringOrder[i][-1]
-			cmd = 'select locX, locY from orders join loc on loc.userID=orders.userID and loc.locIdx=orders.locIdx \
-					where orders.orderID={}'.format(orderID)
-			count = self.cursor.execute(cmd)
-			userX, userY = self.cursor.fetchone()
-			cmd = 'select locX, locY from orders join rest on orders.restID=rest.restID \
-					where orderID={}'.format(orderID)
-			count = self.cursor.execute(cmd)
-			restX, restY = self.cursor.fetchone()
-			records[i,:] = (userX, userY, restX, restY)
+		if count > 0:
+			records = np.zeros((count, 4), dtype=np.float32) #(userX, userY, restX, restY)
+			for i in range(count):
+				orderID = self.deliveringOrder[i][-1]
+				cmd = 'select locX, locY from orders join loc on loc.userID=orders.userID and loc.locIdx=orders.locIdx \
+						where orders.orderID={}'.format(orderID)
+				count = self.cursor.execute(cmd)
+				userX, userY = self.cursor.fetchone()
+				cmd = 'select locX, locY from orders join rest on orders.restID=rest.restID \
+						where orderID={}'.format(orderID)
+				count = self.cursor.execute(cmd)
+				restX, restY = self.cursor.fetchone()
+				records[i,:] = (userX, userY, restX, restY)
 
-		# scale, map to 0.9 of the entire image
-		scale = 0.9 
-		minX = np.min(records[:, (0, 2)])
-		maxX = np.max(records[:, (0, 2)])
-		minY = np.min(records[:, (1, 3)])
-		maxY = np.max(records[:, (1, 3)])
+			# scale, map to 0.9 of the entire image
+			scale = 0.9 
+			minX = np.min(records[:, (0, 2)])
+			maxX = np.max(records[:, (0, 2)])
+			minY = np.min(records[:, (1, 3)])
+			maxY = np.max(records[:, (1, 3)])
 
-		records[:, (0, 2)] = ((records[:, (0, 2)] - minX) / (maxX-minX) * scale + (1.0-scale)/2.0) * width
-		records[:, (1, 3)] = ((records[:, (1, 3)] - minY) / (maxY-minY) * scale + (1.0-scale)/2.0) * height
+			records[:, (0, 2)] = ((records[:, (0, 2)] - minX) / (maxX-minX) * scale + (1.0-scale)/2.0) * width
+			records[:, (1, 3)] = ((records[:, (1, 3)] - minY) / (maxY-minY) * scale + (1.0-scale)/2.0) * height
 
-		# start drawing
-		for x1, y1, x0, y0 in records:
-			img = draw_point(img, (x0, y0), 'rest')
-			img = draw_point(img, (x1, y1), 'user')
+			# start drawing
+			for x1, y1, x0, y0 in records:
+				img = draw_point(img, (x0, y0), 'rest')
+				img = draw_point(img, (x1, y1), 'user')
 
-		# end drawing
-		height, width, bytesPerComponent = img.shape
-		bytesPerLine = 3 * width
-		cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
-		Qimg = QImage(img.data, width, height, bytesPerLine,QImage.Format_RGB888)
-		zoomscale=350/max(height, width)
-		pix = QPixmap.fromImage(Qimg)
-		item=QGraphicsPixmapItem(pix)
-		item.setScale(zoomscale)
-		scene=QGraphicsScene()
-		scene.addItem(item)
-		self.graphicsView_map.setScene(scene)
+			# end drawing
+			height, width, bytesPerComponent = img.shape
+			bytesPerLine = 3 * width
+			cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
+			Qimg = QImage(img.data, width, height, bytesPerLine,QImage.Format_RGB888)
+			zoomscale=350/max(height, width)
+			pix = QPixmap.fromImage(Qimg)
+			item=QGraphicsPixmapItem(pix)
+			item.setScale(zoomscale)
+			scene=QGraphicsScene()
+			scene.addItem(item)
+			self.graphicsView_map.setScene(scene)
 
 
 	def __del__(self):

@@ -25,8 +25,8 @@ class myloginPage(loginPage.Ui_LoginPage):
 		self.lineEdit_passwd_.setEchoMode(QtWidgets.QLineEdit.Password)
 
 		# for debug
-		self.lineEdit_ID.setText('14')
-		self.lineEdit_passwd.setText('zxczxc')
+		#self.lineEdit_ID.setText('14')
+		#self.lineEdit_passwd.setText('zxczxc')
 
 		'''---interface---'''
 		self.Login.clicked.connect(self.login)
@@ -85,4 +85,4 @@ class myloginPage(loginPage.Ui_LoginPage):
 		dialog_.exec_()
 		gl.reset_state()
 		self.delete_all_input()
-		self.LoginPage.show()
+		#self.LoginPage.show()
