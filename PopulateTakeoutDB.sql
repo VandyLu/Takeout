@@ -42,7 +42,9 @@ VALUES
 (1,			'D7-401',			121.38,		31.12),
 (2,			'D7-402',			121.38,		31.12),
 (3,			'D8-502',			121.38,		31.12),
-(4,			'SEIEE-2-202',		121.38,		31.12);	# 1 longitude = 111 km
+(4,			'SEIEE-2-202',		121.38,		31.12),	# 1 longitude = 111 km
+(1,			'D7-402',			121.38,		31.12),
+(1,			'D7-403',			121.38,		31.12);
 
 # populate the Rest table
 INSERT INTO Rest
@@ -110,9 +112,9 @@ FROM 	Rest,	Rider;
 INSERT INTO Orders
 (UserID,	RestID,		state,		RiderID,	ScoreRest,	ScoreRider,	CommentTxt)
 VALUES
-(1,			1,			3,			1,			4.5,		4.5,		"Not Bad!"),
-(1,			2,			3,			3,			4.5,		4.5,		"The delivery could be faster!"),
-(1,			3,			3,			5,			4.5,		4.5,		"Delicious!!!");
+(1,			1,			3,			1,			4.0,		4.0,		"Not Bad!"),
+(1,			2,			3,			3,			4.0,		4.0,		"The delivery could be faster!"),
+(1,			3,			3,			5,			4.0,		4.0,		"Delicious!!!");
 
 # populate the OrderCourse table
 INSERT INTO OrderCourse

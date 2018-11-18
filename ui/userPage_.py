@@ -11,7 +11,8 @@ import userPage
 import connector
 import global_ as gl
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QGraphicsScene, QGraphicsPixmapItem, QAbstractItemView, QTableWidgetItem
+from PyQt5.QtWidgets import (QApplication, QWidget, QMessageBox, QGraphicsScene, QGraphicsPixmapItem,
+							 QAbstractItemView, QTableWidgetItem)
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt
 
@@ -33,14 +34,27 @@ class myuserPage(userPage.Ui_MainPage):
 		self.orderID = None
 		self.fillListRest()
 
+#		self.axWidget.setControl("{8856F961-340A-11D0-A96B-00C04FD705A2}")
+#		self.axWidget.setObjectName("webWidget")
+#		self.axWidget.setFocusPolicy(Qt.StrongFocus)
+#		self.axWidget.setProperty("DisplayAlerts",False)
+#		self.axWidget.setProperty("DisplayScrollBars",True)
+#		webstr = "www.baidu.com"
+#		self.axWidget.dynamicCall("Navigate(const QString&)",webstr)
+
 		'''---user info---'''
 		self.accountID = gl.get_value('account')
 		self.addLoginTime()
 		self.userID_, self.userName_, self.userTel_ = self.query_user_info()
 		print("{}: {}, {}".format(self.userID_, self.userName_, self.userTel_))
-		self.userID.setText(str(self.userID_))
-		self.lineEdit_userName.setText(self.userName_)
-		self.lineEdit_userTel.setText(self.userTel_)
+		self.locNum = 0
+		self.locTitles = ['Address', 'Longitude', 'Latitude']
+		self.locTitles_ = []
+		self.LocRowClicked = None
+		self.changeRecord = None
+		self.locs = ()
+		self.initTableLoc()
+		self.showinfo()
 
 		'''---interface---'''
 		self.listWidget_rest.currentRowChanged.connect(self.restClicked)
@@ -48,13 +62,19 @@ class myuserPage(userPage.Ui_MainPage):
 		self.checkBox.stateChanged.connect(self.selectClicked)
 		self.spinBox.valueChanged.connect(self.numChanged)
 		self.placeOrder.clicked.connect(self.commitOrder)
+		self.pushButton_confirmReceipt.clicked.connect(self.confirmReceipt)
+		self.addAddress.clicked.connect(self.add_address)
+		self.deleteAddress.clicked.connect(self.delete_address)
+		self.modifyAddress.clicked.connect(self.modify_address)
+		self.saveChange.clicked.connect(self.saveInfoChange)
+		self.abandonChange.clicked.connect(self.abandonInfoChange)
 
 		'''---init history orders state---'''
 		self.cursor.execute("select orderID,state from Orders where UserID={} and state<3;".format(self.userID_))
-		historyIncompleteOrder = self.cursor.fetchall()
-		if historyIncompleteOrder:
-			tmp = historyIncompleteOrder[0][0]
-			state = historyIncompleteOrder[0][1]
+		self.historyIncompleteOrder = self.cursor.fetchall()
+		if self.historyIncompleteOrder:
+			tmp = self.historyIncompleteOrder[0][0]
+			state = self.historyIncompleteOrder[0][1]
 			print("Incomplete orderID: {}, state:{}".format(tmp,state))
 			if state == 0:
 				self.label_deliverState.setText("Waiting for being accepted by restaurant")
@@ -71,7 +91,10 @@ class myuserPage(userPage.Ui_MainPage):
 		self.titles=['Course', 'RestName', 'RiderName', 'State', 'Timestamp', 'Score_Rest', 'Score_Rider', 'Comment']
 		self.historyOrders = () # (orderID(hide), restID, riderID, state, "course", timestamp, score1, score2, "comment")
 		self.initTableOrder()
-		self.initTableLoc()
+		self.recordRowClicked = None
+		self.doubleSpinBox_rest.setRange(0, 5)
+		self.doubleSpinBox_rider.setRange(0, 5)
+		self.commit_comment.clicked.connect(self.commitComment)
 
 	def commitOrder(self):
 		# get userID, restName, orders
@@ -273,9 +296,31 @@ class myuserPage(userPage.Ui_MainPage):
 		self.tableWidget_orders.setSelectionBehavior(QAbstractItemView.SelectRows)
 		self.tableWidget_orders.setVerticalHeaderLabels(self.recordTitles)
 
+		self.tableWidget_orders.itemClicked.connect(self.orderRowClicked)
+
 		self.updateTableOrder(True)
 
 	def initTableLoc(self):
+		cmd = "select count(*) from Loc where UserID={};".format(self.userID_)
+		self.cursor.execute(cmd)
+		self.locNum = self.cursor.fetchall()[0][0]
+		for i in range(1, self.locNum+1):
+			self.locTitles_.append(str(i))
+
+		self.tableWidget_Loc.setColumnCount(3)
+		self.tableWidget_Loc.setRowCount(self.locNum)
+		self.tableWidget_Loc.horizontalHeader().setDefaultSectionSize(100)
+		self.tableWidget_Loc.horizontalHeader().resizeSection(0,300)
+		self.tableWidget_Loc.horizontalHeader().setFixedHeight(40)
+		self.tableWidget_Loc.horizontalHeader().setHighlightSections(False)
+		self.tableWidget_Loc.setHorizontalHeaderLabels(self.locTitles)
+		self.tableWidget_Loc.verticalHeader().setDefaultSectionSize(40)
+		self.tableWidget_Loc.verticalHeader().setFixedWidth(50)
+		self.tableWidget_Loc.setSelectionBehavior(QAbstractItemView.SelectRows)
+		self.tableWidget_Loc.setVerticalHeaderLabels(self.locTitles_)
+
+		self.tableWidget_Loc.itemClicked.connect(self.locRowClicked)
+
 		self.updateTableLoc()
 
 	'''---insert records into tables---'''
@@ -283,7 +328,7 @@ class myuserPage(userPage.Ui_MainPage):
 		if flag:
 			cmd = "select OrderID,RestName,RiderName,state,OrderTime,ScoreRest,ScoreRider,CommentTxt \
 				   from (Orders Left Join Rest on Orders.RestID=Rest.RestID) Left Join Rider on Orders.RiderID=Rider.RiderID \
-				   where Orders.UserID={};".format(self.userID_)
+				   where Orders.UserID={} order by OrderID;".format(self.userID_)
 			self.cursor.execute(cmd)
 			self.historyOrders = self.cursor.fetchall()
 			row = 0
@@ -310,17 +355,293 @@ class myuserPage(userPage.Ui_MainPage):
 
 				row = row + 1
 		else:
-			cmd = "select count(*) from orders where UserID={};".format(self.userID_)
+			'''---add a row into table of orders---'''
+			cmd = "select OrderID,RestName,RiderName,state,OrderTime,ScoreRest,ScoreRider,CommentTxt \
+				   from (Orders Left Join Rest on Orders.RestID=Rest.RestID) Left Join Rider on Orders.RiderID=Rider.RiderID \
+				   where Orders.UserID={} order by OrderID;".format(self.userID_)
 			self.cursor.execute(cmd)
-			tmp = self.cursor.fetchall()[0][0]
-			if tmp > self.recordNum:
-				self.recordNum = tmp
-				'''---add a row into table of orders---'''
-				pass
+			self.historyOrders = self.cursor.fetchall()
+			if len(self.historyOrders) > self.recordNum:
+				self.recordNum = len(self.historyOrders)
+				self.tableWidget_orders.setRowCount(self.recordNum)
+				self.recordTitles.append(str(self.recordNum))
+				self.tableWidget_orders.setVerticalHeaderLabels(self.recordTitles)
+				'''---add course at the first column---'''
+				record = self.historyOrders[self.recordNum-1]
+				cmd_ = "select CourseID, Num from OrderCourse where OrderID={};".format(record[0])
+				self.cursor.execute(cmd_)
+				tmp = self.cursor.fetchall()
+				course = ''
+				row = self.recordNum - 1
+				for item in tmp:
+					_cmd_ = "select CourseName from Course where CourseID={};".format(item[0])
+					self.cursor.execute(_cmd_)
+					courseName_ = self.cursor.fetchall()[0][0]
+					course = course + courseName_ + '*' + str(item[1]) + ';'
+				self.tableWidget_orders.setItem(row, 0, QTableWidgetItem(course))
+				'''---add other info---'''
+				self.tableWidget_orders.setItem(row, 1, QTableWidgetItem(str(record[1])))
+				self.tableWidget_orders.setItem(row, 2, QTableWidgetItem(str(record[2])))
+				self.tableWidget_orders.setItem(row, 3, QTableWidgetItem(str(record[3])))
+				self.tableWidget_orders.setItem(row, 4, QTableWidgetItem(str(record[4])))
+				self.tableWidget_orders.setItem(row, 5, QTableWidgetItem(str(record[5])))
+				self.tableWidget_orders.setItem(row, 6, QTableWidgetItem(str(record[6])))
+				if record[7]:
+					self.tableWidget_orders.setItem(row, 7, QTableWidgetItem(record[7]))
+				else:
+					self.tableWidget_orders.setItem(row, 7, QTableWidgetItem(str(record[7])))
 
 
-	def updateTableLoc(self):
+	def updateTableLoc(self, flag=0):# 0: show all Loc, >0:add one row, <0: delete one row;
+		if flag == 0:
+			self.tableWidget_Loc.setRowCount(self.locNum)
+			self.tableWidget_Loc.setVerticalHeaderLabels(self.locTitles_)
+			cmd = "select LocString,LocX,LocY from Loc where UserID={} order by LocIdx;".format(self.userID_)
+			self.cursor.execute(cmd)
+			self.locs = self.cursor.fetchall()
+			row = 0
+			for record in self.locs:
+				self.tableWidget_Loc.setItem(row, 0, QTableWidgetItem(record[0]))
+				self.tableWidget_Loc.setItem(row, 1, QTableWidgetItem(str(record[1])))
+				self.tableWidget_Loc.setItem(row, 2, QTableWidgetItem(str(record[2])))
+				row = row + 1
+		elif flag > 0:
+			self.tableWidget_Loc.setRowCount(self.locNum+1)
+			self.locTitles_.append(str(self.locNum+1))
+			self.tableWidget_Loc.setVerticalHeaderLabels(self.locTitles_)
+			self.locTitles_.pop()
+			cmd = "select LocString,LocX,LocY from Loc where UserID={} order by LocIdx;".format(self.userID_)
+			self.cursor.execute(cmd)
+			self.locs = self.cursor.fetchall()
+			row = 0
+			for record in self.locs:
+				self.tableWidget_Loc.setItem(row, 0, QTableWidgetItem(record[0]))
+				self.tableWidget_Loc.setItem(row, 1, QTableWidgetItem(str(record[1])))
+				self.tableWidget_Loc.setItem(row, 2, QTableWidgetItem(str(record[2])))
+				row = row + 1
+		elif flag < 0:
+			if self.locNum == 1:
+				pass # cant delete when there is only one address
+			else:
+				self.tableWidget_Loc.setRowCount(self.locNum-1)
+				self.locTitles_.pop()
+				self.tableWidget_Loc.setVerticalHeaderLabels(self.locTitles_)
+				self.locTitles_.append(str(self.locNum))
+				cmd = "select LocString,LocX,LocY from Loc where UserID={} order by LocIdx;".format(self.userID_)
+				self.cursor.execute(cmd)
+				self.locs = self.cursor.fetchall()
+				row = 0
+				for record in self.locs:
+					if row < self.LocRowClicked:
+						self.tableWidget_Loc.setItem(row, 0, QTableWidgetItem(record[0]))
+						self.tableWidget_Loc.setItem(row, 1, QTableWidgetItem(str(record[1])))
+						self.tableWidget_Loc.setItem(row, 2, QTableWidgetItem(str(record[2])))
+					elif row > self.LocRowClicked:
+						self.tableWidget_Loc.setItem(row-1, 0, QTableWidgetItem(record[0]))
+						self.tableWidget_Loc.setItem(row-1, 1, QTableWidgetItem(str(record[1])))
+						self.tableWidget_Loc.setItem(row-1, 2, QTableWidgetItem(str(record[2])))
+					row = row + 1
+
+
+	def orderRowClicked(self, item=None):
+		if item:
+			self.recordRowClicked = item.row()
+			record = self.historyOrders[self.recordRowClicked]
+			if record[5]:
+				self.doubleSpinBox_rest.setValue(record[5])
+			else:
+				self.doubleSpinBox_rest.setValue(4)
+			if record[6]:
+				self.doubleSpinBox_rider.setValue(record[6])
+			else:
+				self.doubleSpinBox_rider.setValue(4)
+			if record[7]:
+				self.commentTxt.setText(record[7])
+			else:
+				self.commentTxt.clear()
+		else:
+			print("None")
+
+	def locRowClicked(self, item=None):
+		if item:
+			self.LocRowClicked = item.row()
+			record = self.locs[self.LocRowClicked]
+			if record[0]:
+				self.Address.setText(record[0])
+			else:
+				self.Address.clear()
+			if record[1]:
+				self.lineEdit_longitude.setText(str(record[1]))
+			else:
+				self.lineEdit_longitude.clear()
+			if record[2]:
+				self.lineEdit_latitude.setText(str(record[2]))
+			else:
+				self.lineEdit_latitude.clear()
+		else:
+			self.Address.clear()
+			self.lineEdit_longitude.clear()
+			self.lineEdit_latitude.clear()
+			print("None")
+
+	def commitComment(self):
+		row = self.recordRowClicked
+		orderID = self.historyOrders[row][0]
+		score1 = self.doubleSpinBox_rest.value()
+		score2 = self.doubleSpinBox_rider.value()
+		txt = self.commentTxt.toPlainText()
+		cmd = "update Orders set ScoreRest={},ScoreRider={},CommentTxt='{}' where OrderID={};"\
+			  .format(score1, score2, txt, orderID)
+		try:
+			self.cursor.execute(cmd)
+			self.db.commit()
+			self.updateTableOrder(True)
+
+			'''---recalculate the scores---'''
+			restname = self.historyOrders[row][1]
+			cmd = "select RestID from Rest where RestName='{}';".format(restname)
+			self.cursor.execute(cmd)
+			restID = self.cursor.fetchall()[0][0]
+			cmd = "update Rest set Score=(select AVG(ScoreRest) \
+				   from Orders where RestID={}) where RestID={};".format(restID, restID)
+			self.cursor.execute(cmd)
+			self.db.commit()
+
+			ridername = self.historyOrders[row][2]
+			cmd = "select RiderID from Rider where RiderName='{}';".format(ridername)
+			self.cursor.execute(cmd)
+			riderID = self.cursor.fetchall()[0][0]
+			cmd = "update Rider set Score=(select AVG(ScoreRider) \
+				   from Orders where RiderID={}) where RiderID={};".format(riderID, riderID)
+			self.cursor.execute(cmd)
+			self.db.commit()
+
+			cmd = "select CourseID from OrderCourse where OrderID={};".format(orderID)
+			self.cursor.execute(cmd)
+			courseID_ = self.cursor.fetchall()
+			for course in courseID_:
+				courseID = course[0]
+				print(courseID)
+				cmd = "update Course set Score=\
+					   (select AVG(ScoreRest) From OrderCourse Left Join Orders \
+					   ON OrderCourse.OrderID=Orders.OrderID\
+					   where OrderCourse.CourseID={}) where CourseID={};".format(courseID,courseID)
+				print(cmd)
+				self.cursor.execute(cmd)
+				self.db.commit()
+		except:
+			print("update wrong")
+			self.db.rollback()
+
+	def confirmReceipt(self):
+		if self.historyIncompleteOrder:
+			state = self.historyIncompleteOrder[0][1]
+			if state == 2:
+				try:
+					cmd = "update Orders set State=3 where UserID={} and State=2;".format(self.userID_)
+					self.cursor.execute(cmd)
+					self.db.commit()
+					self.updateTableOrder(True)
+				except:
+					self.db.rollback()
+					print("confirm receipt wrong!")
+
+	def showinfo(self):
+		self.userID.setText(str(self.userID_))
+		self.lineEdit_userName.setText(self.userName_)
+		self.lineEdit_userTel.setText(self.userTel_)
+
+	def add_address(self):
+		self.updateTableLoc(1)
+		self.changeRecord = 1
+
+	def delete_address(self):
+		if self.LocRowClicked:
+			self.updateTableLoc(-1)
+			self.changeRecord = 2
+
+
+	def modify_address(self):
+		self.changeRecord = 3
 		pass
+
+	def saveInfoChange(self):
+		'''---insert and renew self info---'''
+		if self.lineEdit_userName.text() != self.userName_:
+			try:
+				cmd = "update Users set UserName='{}' where UserID={};".format(self.lineEdit_userName.text(), self.userID_)
+				self.cursor.execute(cmd)
+				self.db.commit()
+				self.userName_ = self.lineEdit_userName.text()
+			except:
+				self.rollback()
+				print("insert name wrong")
+		if self.lineEdit_userTel.text() != self.userTel_:
+			try:
+				cmd = "update Users set UserTel='{}' where UserID={};".format(self.lineEdit_userTel.text(), self.userID_)
+				self.cursor.execute(cmd)
+				self.db.commit()
+				self.userTel_ = self.lineEdit_userTel.text()
+			except:
+				self.db.rollback()
+				print("insert tel wrong")
+		'''---insert loc info---'''
+		if self.changeRecord == 1:
+			try:
+				cmd = "insert into Loc (UserID, LocString, LocX, LocY) Values ({}, '{}', {}, {});"\
+					  .format(self.userID_, self.Address.toPlainText(), self.lineEdit_longitude.text(),\
+					  self.lineEdit_latitude.text())
+				self.cursor.execute(cmd)
+				self.db.commit()
+				self.locNum = self.locNum + 1
+				self.locTitles_.append(str(self.locNum))
+			except:
+				self.db.rollback()
+				print("insertion wrong")
+		elif self.changeRecord == 2:
+			try:
+				record = self.locs[self.LocRowClicked]
+				cmd = "delete from Loc where UserID={} and LocString='{}';"\
+					  .format(self.userID_, record[0])
+				self.cursor.execute(cmd)
+				self.db.commit()
+				self.locNum = self.locNum - 1
+				self.locTitles_.pop()
+			except:
+				self.db.rollback()
+				print("delete loc wrong")
+		elif self.changeRecord == 3:
+			try:
+				record = self.locs[self.LocRowClicked]
+				cmd = "update Loc set LocString='{}',LocX={},LocY={} where UserID={} and LocString='{}';"\
+					   .format(self.Address.toPlainText(), self.lineEdit_longitude.text(), \
+							   self.lineEdit_latitude.text(), self.userID_, record[0])
+				print(cmd)
+				self.cursor.execute(cmd)
+				self.db.commit()
+			except:
+				self.db.rollback()
+				print("modify loc wrong")
+		self.LocRowClicked = None
+		self.changeRecord = None
+		self.locs = ()
+
+		self.showinfo()
+		self.updateTableLoc()
+		self.Address.clear()
+		self.lineEdit_longitude.clear()
+		self.lineEdit_latitude.clear()
+
+	def abandonInfoChange(self):
+		self.LocRowClicked = None
+		self.changeRecord = None
+		self.locs = ()
+
+		self.showinfo()
+		self.updateTableLoc()
+		self.Address.clear()
+		self.lineEdit_longitude.clear()
+		self.lineEdit_latitude.clear()
 
 ####################################################################################################
 # MYSQL
@@ -397,13 +718,13 @@ class myuserPage(userPage.Ui_MainPage):
 		self.cursor.execute("select UserLoginTime from users;")
 		time = int(self.cursor.fetchone()[0]) + 1
 		print("logintimes: {}".format(int(time)))
-#		try:
-#			cmd = "UPDATE users SET UserLoginTime={} WHERE UserID={};".format(time, self.accountID)
-#			print(cmd)
-#			self.cursor.execute(cmd)
-#			self.db.commit()
-#		except:
-#			self.db.rollback()
+		try:
+			cmd = "UPDATE users SET UserLoginTime={} WHERE UserID={};".format(time, self.accountID)
+			print(cmd)
+			self.cursor.execute(cmd)
+			self.db.commit()
+		except:
+			self.db.rollback()
 #######################################################################################################
 	def __del__(self):
 		self.db.close()
