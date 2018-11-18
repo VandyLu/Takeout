@@ -37,12 +37,13 @@ VALUES
 
 # populate the Loc table
 INSERT INTO Loc
-(UserID,	LocString,			LocX,		LocY)
+(UserID, LocIdx,	LocString,			LocX,		LocY)
 VALUES
-(1,			'D7-401',			121.38,		31.12),
-(2,			'D7-402',			121.38,		31.12),
-(3,			'D8-502',			121.38,		31.12),
-(4,			'SEIEE-2-202',		121.38,		31.12);	# 1 longitude = 111 km
+(1,		1,		'D7-401',			121.38,		31.12),
+(1,		2,		'Library',			121.38,		31.12),
+(2,		1,		'D7-402',			121.38,		31.12),
+(3,		1,		'D8-502',			121.38,		31.12),
+(4,		1,		'SEIEE-2-202',		121.38,		31.12);	# 1 longitude = 111 km
 
 # populate the Rest table
 INSERT INTO Rest
@@ -108,11 +109,26 @@ FROM 	Rest,	Rider;
 
 # populate the orders table
 INSERT INTO Orders
-(UserID,	RestID,		state,		RiderID,	ScoreRest,	ScoreRider,	CommentTxt)
+(UserID, LocIdx, 	RestID,		state,		RiderID,	ScoreRest,	ScoreRider,	CommentTxt)
 VALUES
-(1,			1,			3,			1,			4.5,		4.5,		"Not Bad!"),
-(1,			2,			3,			3,			4.5,		4.5,		"The delivery could be faster!"),
-(1,			3,			3,			5,			4.5,		4.5,		"Delicious!!!");
+(1,		1,				1,			3,			1,			4.5,		4.5,		"Not Bad!"),
+(1,		1,				2,			3,			3,			4.5,		4.5,		"The delivery could be faster!"),
+(1,		1,				3,			3,			5,			4.5,		4.5,		"Delicious!!!");
+
+# create some waiting for rider orders
+INSERT INTO Orders
+(UserID, 	LocIdx, 	RestID,  state)
+VALUES
+(1,			1,			1,		1),
+(2,			1,			1,		1);
+
+# create some delivering orders
+INSERT INTO Orders
+(UserID, 	LocIdx, 	RestID,  state,  RiderID)
+VALUES
+(1,			1,			1,		2,		1),
+(2,			1,			1,		2,		1),
+(3,			1,			1,		2,		1);
 
 # populate the OrderCourse table
 INSERT INTO OrderCourse

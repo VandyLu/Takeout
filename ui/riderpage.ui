@@ -59,24 +59,15 @@
        <x>30</x>
        <y>30</y>
        <width>731</width>
-       <height>431</height>
+       <height>151</height>
       </rect>
      </property>
-     <row>
-      <property name="text">
-       <string>order01</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>order02</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>order03</string>
-      </property>
-     </row>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>115</number>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
      <column>
       <property name="text">
        <string>user name</string>
@@ -84,22 +75,12 @@
      </column>
      <column>
       <property name="text">
-       <string>user Tel</string>
+       <string>user tel</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>order03</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>restaurant Loc</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>distance</string>
+       <string>restaurant</string>
       </property>
      </column>
      <column>
@@ -112,7 +93,7 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>490</y>
+       <y>470</y>
        <width>731</width>
        <height>51</height>
       </rect>
@@ -126,20 +107,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="earlierOrder">
-        <property name="text">
-         <string>earlier</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="laterOrder">
-        <property name="text">
-         <string>later</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="rejectOrder">
         <property name="text">
          <string>reject</string>
@@ -148,63 +115,37 @@
       </item>
      </layout>
     </widget>
-   </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>navigation</string>
-    </attribute>
-    <widget class="QAxWidget" name="axWidget">
-     <property name="geometry" stdset="0">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>771</width>
-       <height>551</height>
-      </rect>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tab_3">
-    <attribute name="title">
-     <string>orders delivered</string>
-    </attribute>
-    <widget class="QTableWidget" name="tableWidget_historyOrder">
+    <widget class="QTableWidget" name="tableWidget_deliver">
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>90</y>
+       <y>210</y>
        <width>731</width>
-       <height>451</height>
+       <height>231</height>
       </rect>
      </property>
-     <row>
-      <property name="text">
-       <string>order01</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>order02</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>order03</string>
-      </property>
-     </row>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::NoSelection</enum>
+     </property>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>120</number>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
      <column>
       <property name="text">
-       <string>user ID</string>
+       <string>user name</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>rest ID</string>
+       <string>user tel</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>distance</string>
+       <string>address</string>
       </property>
      </column>
      <column>
@@ -214,76 +155,55 @@
      </column>
      <column>
       <property name="text">
-       <string>delivered time</string>
+       <string>restaurant</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>order state</string>
       </property>
      </column>
     </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_2">
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>navigation</string>
+    </attribute>
+    <widget class="QGraphicsView" name="graphicsView_map">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>20</y>
-       <width>731</width>
-       <height>51</height>
+       <x>80</x>
+       <y>40</y>
+       <width>611</width>
+       <height>411</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>filter by time: </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="comboBox_time">
-        <item>
-         <property name="text">
-          <string>all orders</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>orders in this year</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>orders in this month</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>orders in this week</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QLineEdit" name="lineEdit_timeStart"/>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>to</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="lineEdit_timeEnd"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_filter">
-        <property name="text">
-         <string>filter</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+    </widget>
+    <widget class="QPushButton" name="pushButton_plan">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>490</y>
+       <width>93</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>plan</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_reset">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>490</y>
+       <width>93</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>reset</string>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_4">
@@ -308,7 +228,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLabel" name="riderID">
+       <widget class="QLabel" name="label_riderID">
         <property name="text">
          <string/>
         </property>
@@ -430,13 +350,6 @@
    </widget>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QAxWidget</class>
-   <extends>QWidget</extends>
-   <header>qaxwidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
