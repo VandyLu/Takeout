@@ -13,7 +13,7 @@ import global_ as gl
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QGraphicsScene, QGraphicsPixmapItem, QAbstractItemView, QTableWidgetItem
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 
 class myrestPage(restPage.Ui_RestPage):
@@ -27,6 +27,10 @@ class myrestPage(restPage.Ui_RestPage):
 
 		self.get_rest_info()
 		self.update()
+
+		self.timer = QTimer()
+		self.timer.timeout.connect(self.update) 
+		self.timer.start(1000) # flush 1hz
 
 		self.tableWidget_course.currentCellChanged.connect(self.update)
 		self.addCourse.clicked.connect(self.add_clicked)
